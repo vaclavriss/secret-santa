@@ -1,0 +1,1693 @@
+<title>Dopisy na parapetu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Layout: one narrow column — header, pixel window (canvas), wooden sill with envelopes as real buttons, short how-to.
+   Single committed night look: the scene is always evening, so no light variant. */
+:root {
+  color-scheme: dark;
+  --wall: #131528;
+  --wall-2: #1c1f3a;
+  --text: #ece8f4;
+  --muted: #b3b0cc;
+  --amber: #f2b24b;
+  --amber-lo: #b97a22;
+  --amber-ink: #2a1806;
+  --wood: #6e4630;
+  --wood-hi: #93654a;
+  --wood-lo: #43281b;
+  --paper: #f4f7fc;
+  --paper-line: #c3d1ea;
+  --ink: #1d2f6f;
+  --ink-soft: #4a5a92;
+  --env-line: #27304f;
+  --env-flap: #dde4f0;
+  --seal: #a8323a;
+  --seal-lo: #741f26;
+  --danger: #a8323a;
+  --font-pixel: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-hand: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --glow: 0;
+}
+html { font-size: 125%; }
+[hidden] { display: none !important; }
+body {
+  background: var(--wall);
+  color: var(--text);
+  font-family: var(--font-hand);
+  font-size: 1.1rem;
+  line-height: 1.45;
+}
+.room {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 1.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.head { display: flex; flex-direction: column; gap: .35rem; text-align: center; align-items: center; }
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: .8rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+h1 {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-weight: 600;
+  font-size: clamp(1.9rem, 8vw, 2.8rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.intro { margin: .3rem 0 0; max-width: 30rem; color: var(--text); text-wrap: balance; }
+.advent { margin: 0; color: var(--muted); font-size: 1rem; }
+
+.window-wrap { line-height: 0; }
+#scene {
+  display: block;
+  width: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  box-shadow: 0 0 0 6px #0d0f1e;
+}
+
+.sill {
+  position: relative;
+  margin-inline: -10px;
+  margin-top: -1.5rem;
+  padding: 1.4rem .9rem 1.6rem;
+  border-top: 5px solid var(--wood-hi);
+  background-color: var(--wood);
+  background-image:
+    radial-gradient(ellipse 60% 90% at 50% 0, rgba(242, 178, 75, calc(.28 * var(--glow))), transparent 70%),
+    repeating-linear-gradient(90deg, transparent 0 157px, rgba(0, 0, 0, .14) 157px 160px);
+  box-shadow: 0 14px 0 var(--wood-lo), 0 24px 0 rgba(0, 0, 0, .35);
+  margin-bottom: 24px;
+}
+.letters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.3rem 1rem;
+}
+.sill-note {
+  margin: .2rem 0 0;
+  text-align: center;
+  color: #f6e7d3;
+  font-size: 1.15rem;
+}
+.env {
+  position: relative;
+  width: min(8.5rem, calc(50% - .6rem));
+  aspect-ratio: 3 / 2;
+  max-width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  transform: rotate(var(--tilt, 0deg));
+  box-shadow: 6px 8px 0 0 rgba(12, 6, 3, .45);
+  transition: transform .15s ease;
+  font: inherit;
+}
+.env-art { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+#letter-dlg .paper { position: relative; }
+#letter-dlg .salut { padding-right: 60px; }
+.lt-stamp { position: absolute; top: 1.1rem; right: 1.2rem; width: 45px; height: 55px; image-rendering: pixelated; image-rendering: crisp-edges; transform: rotate(4deg); }
+.env:hover { transform: rotate(0deg) translateY(-4px); }
+.env:focus-visible { outline: 3px solid var(--amber); outline-offset: 6px; }
+.seal {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: calc(58% - 12px);
+  width: 16px;
+  height: 16px;
+  transform: translateX(-50%);
+  background: var(--seal);
+  box-shadow: 0 -3px 0 var(--seal), 0 3px 0 var(--seal-lo), -3px 0 0 var(--seal), 3px 0 0 var(--seal-lo);
+}
+.env-name {
+  position: absolute;
+  z-index: 1;
+  left: 11%;
+  right: 11%;
+  bottom: 7%;
+  font-family: var(--font-hand);
+  font-size: clamp(.85rem, 3.9vw, 1.05rem);
+  line-height: 1.2;
+  color: var(--ink);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.env.drop { animation: drop .6s cubic-bezier(.3, 1.4, .5, 1) both; }
+@keyframes drop { from { transform: translateY(-48px) rotate(var(--tilt, 0deg)); opacity: 0; } }
+
+.actions { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: .8rem; text-align: center; }
+#write-btn { grid-column: 2; }
+.perm-note { grid-column: 1 / -1; justify-self: center; margin: 0; color: var(--muted); max-width: 30rem; }
+.bin {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .2rem;
+  padding: .2rem;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-family: var(--font-pixel);
+  font-size: .7rem;
+  letter-spacing: .06em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.bin svg { display: block; width: 52px; height: 52px; transform-origin: 50% 100%; }
+.bin:hover { color: var(--text); }
+.bin:focus-visible { outline: 3px solid var(--amber); outline-offset: 4px; }
+.bin.wobble svg { animation: wobble .55s ease-out; }
+@keyframes wobble { 25% { transform: rotate(-10deg); } 50% { transform: rotate(8deg); } 75% { transform: rotate(-4deg); } }
+.trash-intro { margin: 0; color: var(--ink-soft); }
+.trash-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1rem; }
+.trash-item { display: flex; flex-direction: column; gap: .4rem; padding-bottom: 1rem; border-bottom: 2px dashed var(--paper-line); }
+.trash-name { margin: 0; font-size: 1.35rem; }
+.trash-meta { margin: 0; color: var(--ink-soft); font-size: 1.05rem; overflow-wrap: anywhere; }
+.trash-acts { display: flex; flex-wrap: wrap; gap: .8rem; }
+.trash-empty { color: var(--ink-soft); }
+
+.btn {
+  font-family: var(--font-pixel);
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: .85em 1.3em;
+  min-height: 48px;
+  border: 0;
+  cursor: pointer;
+  background: var(--amber);
+  color: var(--amber-ink);
+  box-shadow:
+    0 -4px 0 0 var(--amber-ink), 0 4px 0 0 var(--amber-ink),
+    -4px 0 0 0 var(--amber-ink), 4px 0 0 0 var(--amber-ink),
+    inset 0 -5px 0 var(--amber-lo);
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { box-shadow: 0 -4px 0 0 var(--amber-ink), 0 4px 0 0 var(--amber-ink), -4px 0 0 0 var(--amber-ink), 4px 0 0 0 var(--amber-ink), inset 0 4px 0 var(--amber-lo); }
+.btn:focus-visible { outline: 3px solid var(--text); outline-offset: 7px; }
+.btn[disabled] { opacity: .6; cursor: wait; }
+.btn.quiet { background: var(--paper); color: var(--ink); box-shadow: 0 -3px 0 0 var(--ink), 0 3px 0 0 var(--ink), -3px 0 0 0 var(--ink), 3px 0 0 0 var(--ink); }
+.btn.danger { background: var(--paper); color: var(--danger); box-shadow: 0 -3px 0 0 var(--danger), 0 3px 0 0 var(--danger), -3px 0 0 0 var(--danger), 3px 0 0 0 var(--danger); }
+.btn.danger-solid { background: var(--danger); color: var(--paper); box-shadow: 0 -3px 0 0 var(--seal-lo), 0 3px 0 0 var(--seal-lo), -3px 0 0 0 var(--seal-lo), 3px 0 0 0 var(--seal-lo); }
+.btn.quiet:focus-visible, .btn.danger:focus-visible, .btn.danger-solid:focus-visible { outline-color: var(--ink); }
+
+.how {
+  margin-top: .5rem;
+  padding: 1.2rem 1.3rem;
+  background: var(--wall-2);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.how h2 {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--amber);
+}
+.how ol { margin: 0; padding-left: 1.4rem; display: flex; flex-direction: column; gap: .35rem; }
+
+/* Dialogs: a sheet of ruled notebook paper */
+dialog {
+  width: min(38rem, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 0;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 0 0 4px var(--env-line), 10px 12px 0 4px rgba(0, 0, 0, .5);
+  overflow: auto;
+}
+dialog::backdrop { background: rgba(6, 8, 20, .72); }
+dialog[open] { animation: unfold .25s ease-out; }
+@keyframes unfold { from { transform: translateY(16px) scale(.97); opacity: 0; } }
+.paper { padding: 1.4rem 1.3rem 1.3rem; display: flex; flex-direction: column; gap: 1rem; }
+.ruled {
+  font-size: 1.45rem;
+  line-height: 1.5em;
+  margin: 0;
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(1.5em - 2px), var(--paper-line) calc(1.5em - 2px), var(--paper-line) 1.5em);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.salut { font-size: 1.45rem; margin: 0; }
+.sign { font-size: 1.45rem; margin: 0; text-align: right; }
+.tag {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: .75rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.extra { display: flex; flex-direction: column; gap: .2rem; }
+.extra .ruled { font-size: 1.25rem; }
+.dlg-actions { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: flex-end; padding-top: .4rem; }
+.dlg-title { margin: 0; font-family: var(--font-pixel); font-weight: 600; font-size: 1.3rem; }
+
+form { display: flex; flex-direction: column; gap: 1rem; }
+.field { display: flex; flex-direction: column; gap: .3rem; }
+.field label { font-family: var(--font-pixel); font-size: .85rem; letter-spacing: .04em; color: var(--ink-soft); }
+.field input, .field textarea {
+  font-family: var(--font-hand);
+  font-size: 1.3rem;
+  line-height: 1.4;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--env-line);
+  border-radius: 0;
+  padding: .45em .6em;
+  width: 100%;
+  box-sizing: border-box;
+  color-scheme: light;
+}
+.field textarea { resize: vertical; min-height: 7.5em; }
+.field label.salut-label { font-family: var(--font-hand); font-size: 1.45rem; letter-spacing: 0; color: var(--ink); }
+.sign-field { align-self: flex-end; width: min(100%, 16rem); }
+.field input:focus-visible, .field textarea:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.status { margin: 0; min-height: 1.4em; color: var(--danger); font-size: 1.1rem; }
+.confirm { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; padding: .8rem; background: #fbe9ea; }
+.confirm p { margin: 0; flex: 1 1 12rem; color: var(--danger); font-size: 1.2rem; }
+.status[data-kind="info"] { color: var(--ink-soft); }
+
+/* one picture per letter: a drawing or a photo */
+.attach { display: flex; flex-direction: column; gap: .8rem; }
+.attach-tools { display: flex; flex-wrap: wrap; gap: 1rem; }
+.btn.small { font-size: .9rem; padding: .7em 1em; min-height: 44px; }
+.pad { display: flex; flex-direction: column; gap: .8rem; }
+#pad-canvas { display: block; width: 100%; max-width: 100%; aspect-ratio: 4 / 3; background: #fff; box-shadow: 0 0 0 3px var(--env-line); touch-action: none; cursor: crosshair; }
+.pad-tools { display: flex; flex-direction: column; gap: .8rem; }
+.swatches, .sizes, .pad-actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.pad-actions { justify-content: flex-end; }
+.sw { width: 40px; height: 40px; border: 0; padding: 0; cursor: pointer; background: var(--c, #fff); box-shadow: 0 0 0 2px var(--env-line); }
+.sw.eraser, .sz { width: auto; min-height: 40px; padding: 0 .8rem; border: 0; cursor: pointer; background: #fff; color: var(--ink); font-family: var(--font-hand); font-size: 1.1rem; box-shadow: 0 0 0 2px var(--env-line); }
+.sw[aria-pressed="true"], .sz[aria-pressed="true"] { outline: 3px solid var(--amber); outline-offset: 3px; }
+.sw:focus-visible, .sz:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.attach-preview { margin: 0; display: flex; flex-direction: column; gap: .6rem; align-items: flex-start; }
+.attach-preview img { max-width: 100%; max-height: 16rem; background: #fff; box-shadow: 0 0 0 3px var(--env-line); }
+.lt-figure { margin: 0; }
+.lt-figure img { display: block; max-width: 100%; max-height: 75vh; margin: 0 auto; background: #fff; box-shadow: 0 0 0 3px var(--env-line); }
+.lt-figure p { margin: 0; color: var(--ink-soft); }
+.stamp { position: absolute; z-index: 1; top: 7px; right: 8px; width: 16px; height: 20px; background: var(--amber); box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--env-line); }
+
+@media (prefers-reduced-motion: reduce) {
+  .env, .env.drop, dialog[open], .bin.wobble svg { animation: none; transition: none; }
+}
+</style>
+
+<main class="room">
+  <header class="head">
+    <p class="eyebrow">Rodinný Tajný Ježíšek <span id="year">2026</span></p>
+    <h1>Dopisy na parapetu</h1>
+  </header>
+
+  <div class="window-wrap" id="window-wrap">
+    <canvas id="scene" aria-hidden="true"></canvas>
+  </div>
+
+  <section class="sill" id="sill" aria-label="Parapet s dopisy">
+    <div class="letters" id="letters"></div>
+    <p class="sill-note" id="sill-note">Nosím dopisy…</p>
+  </section>
+
+  <div class="actions">
+    <button class="btn" id="write-btn" type="button">Napsat dopis</button>
+    <button class="bin" id="bin-btn" type="button" aria-label="Koš" hidden>
+      <svg id="bin-svg" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"></svg>
+      <span>Koš <span id="bin-count"></span></span>
+    </button>
+    <p class="perm-note" id="perm-note" hidden></p>
+  </div>
+
+  <section class="how">
+    <h2>Jak to funguje</h2>
+    <ol>
+      <li>Napiš dopis se svým přáním a polož ho na parapet.</li>
+      <li>Dopisy čte celá rodina, takže i tvůj Tajný Ježíšek.</li>
+      <li>Kdo je čí Ježíšek, zůstává tajemství. Do dopisu to nepiš.</li>
+      <li>K dopisu můžeš přidat obrázek: nakreslit ho, nebo vyfotit dopis psaný rukou.</li>
+    </ol>
+    <p style="margin:0;color:var(--muted)">Svůj dopis můžeš později upravit: otevři ho a klikni na Upravit dopis. Smazané dopisy se schovají do koše a dají se vrátit.</p>
+  </section>
+</main>
+
+<dialog id="letter-dlg" aria-labelledby="lt-salut">
+  <article class="paper">
+    <canvas class="lt-stamp" id="lt-stamp" width="9" height="11" aria-hidden="true"></canvas>
+    <p class="salut" id="lt-salut">Milý Tajný Ježíšku,</p>
+    <p class="ruled" id="lt-wish"></p>
+    <figure class="lt-figure" id="lt-figure" hidden>
+      <img id="lt-img" alt="Obrázek v dopise">
+      <p id="lt-img-err" hidden>Obrázek se nepodařilo načíst.</p>
+    </figure>
+    <div class="extra" id="lt-sizes-box">
+      <p class="tag">Velikosti a tipy</p>
+      <p class="ruled" id="lt-sizes"></p>
+    </div>
+    <div class="extra" id="lt-avoid-box">
+      <p class="tag">Tohle prosím ne</p>
+      <p class="ruled" id="lt-avoid"></p>
+    </div>
+    <p class="sign" id="lt-from"></p>
+    <div class="dlg-actions">
+      <button class="btn quiet" id="lt-edit" type="button">Upravit dopis</button>
+      <button class="btn" id="lt-close" type="button">Zavřít</button>
+    </div>
+  </article>
+</dialog>
+
+<dialog id="form-dlg" aria-labelledby="form-title">
+  <div class="paper">
+    <h2 class="dlg-title" id="form-title">Nový dopis</h2>
+    <form id="letter-form" novalidate>
+      <div class="field">
+        <label for="f-wish" class="salut-label">Milý Tajný Ježíšku,</label>
+        <textarea id="f-wish" name="wish" maxlength="2000" rows="9" placeholder="Napiš, co by ti udělalo radost…"></textarea>
+      </div>
+      <div class="attach" id="f-attach" hidden>
+        <div class="attach-tools" id="attach-tools">
+          <button class="btn quiet small" id="f-draw-btn" type="button">Nakreslit obrázek</button>
+          <button class="btn quiet small" id="f-photo-btn" type="button">Přidat fotku</button>
+          <input type="file" id="f-photo" accept="image/*" hidden>
+        </div>
+        <div class="pad" id="pad" hidden>
+          <canvas id="pad-canvas" aria-label="Plocha na kreslení"></canvas>
+          <div class="pad-tools" id="pad-tools">
+            <div class="swatches" role="group" aria-label="Barva">
+              <button type="button" class="sw" data-color="#1d2f6f" aria-label="Modrá" aria-pressed="true"></button>
+              <button type="button" class="sw" data-color="#1a1a1a" aria-label="Černá" aria-pressed="false"></button>
+              <button type="button" class="sw" data-color="#c0392b" aria-label="Červená" aria-pressed="false"></button>
+              <button type="button" class="sw" data-color="#2e7d4f" aria-label="Zelená" aria-pressed="false"></button>
+              <button type="button" class="sw" data-color="#e8a33a" aria-label="Žlutá" aria-pressed="false"></button>
+              <button type="button" class="sw" data-color="#6e4630" aria-label="Hnědá" aria-pressed="false"></button>
+              <button type="button" class="sw eraser" data-color="#ffffff" aria-pressed="false">Guma</button>
+            </div>
+            <div class="sizes" role="group" aria-label="Tloušťka čáry">
+              <button type="button" class="sz" data-size="4" aria-pressed="true">Tenká čára</button>
+              <button type="button" class="sz" data-size="12" aria-pressed="false">Silná čára</button>
+            </div>
+            <div class="pad-actions">
+              <button type="button" class="btn quiet small" id="pad-clear">Smazat kresbu</button>
+              <button type="button" class="btn quiet small" id="pad-cancel">Zpět</button>
+              <button type="button" class="btn small" id="pad-done">Hotovo</button>
+            </div>
+          </div>
+        </div>
+        <figure class="attach-preview" id="attach-preview" hidden>
+          <img id="attach-img" alt="Obrázek přiložený k dopisu">
+          <button class="btn danger small" id="attach-remove" type="button">Odebrat obrázek</button>
+        </figure>
+      </div>
+      <div class="field sign-field">
+        <label for="f-from">Podpis</label>
+        <input id="f-from" name="from" maxlength="40" autocomplete="given-name" placeholder="tvoje jméno">
+      </div>
+      <p class="status" id="f-status" aria-live="polite"></p>
+      <div class="confirm" id="f-confirm" hidden>
+        <p>Opravdu dopis smazat?</p>
+        <button class="btn danger-solid" id="f-confirm-yes" type="button">Ano, smazat</button>
+        <button class="btn quiet" id="f-confirm-no" type="button">Ponechat</button>
+      </div>
+      <div class="dlg-actions">
+        <button class="btn danger" id="f-delete" type="button" hidden>Smazat dopis</button>
+        <button class="btn quiet" id="f-cancel" type="button">Zrušit</button>
+        <button class="btn" id="f-save" type="submit">Položit na parapet</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<dialog id="trash-dlg" aria-labelledby="trash-title">
+  <div class="paper">
+    <h2 class="dlg-title" id="trash-title">Koš</h2>
+    <p class="trash-intro">Smazané dopisy tu zůstávají schované. Kterýkoli můžeš vrátit zpátky na parapet.</p>
+    <ul class="trash-list" id="trash-list"></ul>
+    <p class="status" id="trash-status" aria-live="polite"></p>
+    <div class="dlg-actions">
+      <button class="btn" id="trash-close" type="button">Zavřít</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- Advent ---------- */
+  const MONTHS = ["ledna","února","března","dubna","května","června","července","srpna","září","října","listopadu","prosince"];
+  function plural(n, one, few, many) { return n === 1 ? one : (n >= 2 && n <= 4 ? few : many); }
+  function advent(now) {
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const y = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    const eve = new Date(y, 11, 24);
+    const adv4 = new Date(y, 11, 24 - eve.getDay());
+    const adv1 = new Date(adv4); adv1.setDate(adv4.getDate() - 21);
+    let lit = 0;
+    for (let k = 0; k < 4; k++) { const s = new Date(adv1); s.setDate(adv1.getDate() + 7 * k); if (today >= s) lit++; }
+    if (today > new Date(y + 1, 0, 6)) lit = 0;
+    const days = Math.round((eve - today) / 864e5);
+    let text;
+    const words = ["", "jedna svíčka", "dvě svíčky", "tři svíčky", "všechny čtyři svíčky"];
+    if (lit === 0) {
+      const a = today > new Date(y + 1, 0, 6) ? (() => { const e = new Date(y + 1, 11, 24); const d4 = new Date(y + 1, 11, 24 - e.getDay()); d4.setDate(d4.getDate() - 21); return d4; })() : adv1;
+      text = "První adventní svíčka se zapálí v neděli " + a.getDate() + ". " + MONTHS[a.getMonth()] + ".";
+    } else if (days > 0) {
+      text = "Na věnci hoří " + words[lit] + ". Do Štědrého dne " + plural(days, "zbývá", "zbývají", "zbývá") + " " + days + " " + plural(days, "den", "dny", "dní") + ".";
+    } else if (days === 0) {
+      text = "Dnes je Štědrý den.";
+    } else {
+      text = "Veselé Vánoce.";
+    }
+    return { lit, text, year: y };
+  }
+  const adv = advent(new Date());
+  $("#year").textContent = adv.year;
+  document.documentElement.style.setProperty("--glow", (adv.lit / 4).toFixed(2));
+
+  /* ---------- Pixel scene ---------- */
+  const BAYER = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+  function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function px(c, x, y, col, w = 1, h = 1) { c.fillStyle = col; c.fillRect(x, y, w, h); }
+  function layer(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+
+  const cv = $("#scene");
+  const ctx = cv.getContext("2d");
+  let S, W, H, G, bg, fr, stars, wins, flakes, smokers, puffs, candles, beacons = [], glints = [], shoot = null, nextShoot = 5, deco = {}, bulbs = [];
+
+  function resize() {
+    const cssW = cv.parentElement.clientWidth || 360;
+    const cssH = Math.round(Math.min(Math.max(cssW * 0.8, 300), 520));
+    S = Math.max(2, Math.round(cssH / 104));
+    W = Math.ceil(cssW / S);
+    H = Math.ceil(cssH / S);
+    cv.width = W; cv.height = H;
+    cv.style.height = cssH + "px";
+    build();
+    draw(performance.now(), 0);
+  }
+
+  function build() {
+    const R = rng(1224);
+    const f = Math.max(5, Math.round(W * 0.045));
+    const ledgeH = Math.max(16, Math.round(H * 0.17));
+    const gx0 = f, gx1 = W - f, gy0 = f, gy1 = H - f - ledgeH;
+    const bar = Math.max(3, Math.round(f * 0.6));
+    const midX = Math.round(W / 2);
+    const transY = gy0 + Math.round((gy1 - gy0) * 0.34);
+    const horizon = gy0 + Math.round((gy1 - gy0) * 0.6);
+    G = { f, ledgeH, gx0, gx1, gy0, gy1, bar, midX, transY, horizon };
+
+    bg = layer(W, H);
+    const b = bg.getContext("2d");
+
+    // sky, dithered bands
+    const sky = ["#0a1230", "#0d1736", "#111e3f", "#16264a", "#1d3055", "#263b62"];
+    for (let y = gy0; y < gy1; y++) {
+      const t = Math.min(1, Math.max(0, (y - gy0) / (horizon - gy0)));
+      const fi = t * (sky.length - 1), i0 = Math.floor(fi), frac = fi - i0;
+      for (let x = gx0; x < gx1; x++) {
+        px(b, x, y, frac * 16 > BAYER[y & 3][x & 3] ? sky[Math.min(i0 + 1, sky.length - 1)] : sky[i0]);
+      }
+    }
+
+    // moon in the upper right pane
+    const r = Math.max(3, Math.round(W * 0.03));
+    const mx = gx0 + Math.round((gx1 - gx0) * 0.77), my = gy0 + Math.round((transY - gy0) * 0.5);
+    for (let dy = -r - 4; dy <= r + 4; dy++) for (let dx = -r - 4; dx <= r + 4; dx++) {
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d <= r) px(b, mx + dx, my + dy, "#ece6c8");
+      else if (d <= r + 3.5 && BAYER[(my + dy) & 3][(mx + dx) & 3] < (r + 4 - d) * 3) px(b, mx + dx, my + dy, "#2f4472");
+    }
+    px(b, mx - 1, my - 1, "#d6cfaa", 2, 1); px(b, mx + 1, my + 1, "#d6cfaa"); px(b, mx - 2, my + 2, "#d6cfaa");
+
+    // stars
+    stars = [];
+    const nStars = Math.round((gx1 - gx0) * (horizon - gy0) / 80);
+    for (let i = 0; i < nStars; i++) {
+      const x = gx0 + Math.floor(R() * (gx1 - gx0)), y = gy0 + Math.floor(R() * (horizon - gy0 - 6));
+      if (Math.hypot(x - mx, y - my) < r + 6) continue;
+      stars.push({ x, y, b: 0.35 + R() * 0.65, sp: 0.6 + R() * 2.2, ph: R() * 6.3 });
+    }
+
+    ({ cottage: sceneCottage, jested: sceneJested, church: sceneChurch })[SCENE](b, R);
+
+    // ---- frame layer (wood, glass glare, drifts, ledge, wreath) ----
+    fr = layer(W, H);
+    const c = fr.getContext("2d");
+    const WOOD = "#5b3a28", HI = "#7d533a", LO = "#3a2418", EDGE = "#24160f";
+    c.fillStyle = WOOD;
+    c.fillRect(0, 0, W, f); c.fillRect(0, H - f, W, f); c.fillRect(0, 0, f, H); c.fillRect(W - f, 0, f, H);
+    const bh = Math.floor(bar / 2);
+    c.fillRect(midX - bh, gy0, bar, gy1 - gy0);
+    c.fillRect(gx0, transY - bh, gx1 - gx0, bar);
+    // grain
+    for (let i = 0; i < W * 1.2; i++) {
+      const side = Math.floor(R() * 4);
+      const x = side < 2 ? Math.floor(R() * W) : (side === 2 ? Math.floor(R() * f) : W - f + Math.floor(R() * f));
+      const y = side === 0 ? Math.floor(R() * f) : side === 1 ? H - f + Math.floor(R() * f) : Math.floor(R() * H);
+      px(c, x, y, "#4f3121", side < 2 ? 3 : 1, side < 2 ? 1 : 3);
+    }
+    // outer edge + inner bevels
+    c.fillStyle = EDGE; c.fillRect(0, 0, W, 1); c.fillRect(0, H - 1, W, 1); c.fillRect(0, 0, 1, H); c.fillRect(W - 1, 0, 1, H);
+    px(c, gx0, gy0 - 1, LO, gx1 - gx0, 1);
+    px(c, gx0 - 1, gy0, LO, 1, H - f - gy0);
+    px(c, gx1, gy0, HI, 1, H - f - gy0);
+    px(c, 1, 1, HI, W - 2, 1);
+    px(c, midX - bh, gy0, HI, 1, gy1 - gy0); px(c, midX - bh + bar - 1, gy0, LO, 1, gy1 - gy0);
+    px(c, gx0, transY - bh, HI, gx1 - gx0, 1); px(c, gx0, transY - bh + bar - 1, LO, gx1 - gx0, 1);
+    px(c, midX - bh + 1, transY - bh + 1, WOOD, bar - 2, bar - 2);
+
+    // glass glare
+    c.fillStyle = "rgba(220,230,255,0.07)";
+    const panes = [[gx0, gy0, midX - bh, transY - bh], [midX - bh + bar, gy0, gx1, transY - bh], [gx0, transY - bh + bar, midX - bh, gy1], [midX - bh + bar, transY - bh + bar, gx1, gy1]];
+    for (const [x0, y0, x1, y1] of panes) {
+      const len = Math.min(x1 - x0, y1 - y0) * 0.55;
+      for (let k = 0; k < len; k++) {
+        c.fillRect(x0 + 3 + k, y1 - 4 - k, 2, 1);
+        if (k < len * 0.6) c.fillRect(x0 + 9 + k, y1 - 4 - k, 1, 1);
+      }
+    }
+    // snow drifts in the lower panes
+    for (const [x0, , x1, y1] of panes.slice(2)) {
+      for (let x = x0; x < x1; x++) {
+        const d = Math.min(x - x0, x1 - 1 - x);
+        const hgt = Math.max(1, Math.round(4.5 - d * 0.45 + (R() < 0.3 ? 1 : 0)));
+        px(c, x, y1 - hgt, "#f1f5fb");
+        px(c, x, y1 - hgt + 1, "#d3dcee", 1, hgt - 1);
+      }
+    }
+    // inner ledge between the panes
+    const ly0 = gy1, ly1 = H - f;
+    px(c, gx0, ly0, "#9b9284", gx1 - gx0, 1);
+    px(c, gx0, ly0 + 1, "#cbc3b6", gx1 - gx0, ly1 - ly0 - 1);
+    px(c, gx0, ly1 - 3, "#b2a999", gx1 - gx0, 2);
+    px(c, gx0, ly1 - 1, "#8c8274", gx1 - gx0, 1);
+    // cotton-wool snow along the back of the ledge
+    for (let x = gx0; x < gx1; x++) {
+      const hgt = 1 + Math.round(1 + Math.sin(x * 0.55) + Math.sin(x * 0.21 + 1));
+      if (hgt <= 0) continue;
+      px(c, x, ly0 + 1, "#eef1f6", 1, hgt);
+      px(c, x, ly0 + 1 + hgt, "#d0d5de");
+    }
+
+    // advent wreath with four candles
+    const cx = midX, cy = ly0 + Math.round((ly1 - ly0) * 0.58);
+    const rx = Math.min(17, Math.round((gx1 - gx0) * 0.16)), ry = 3;
+    const greens = ["#264a31", "#2f5a3a", "#3d7449"];
+    const ring = (front) => {
+      for (let dy = -ry; dy <= ry; dy++) {
+        if ((dy > 0) !== front) continue;
+        for (let dx = -rx - 1; dx <= rx + 1; dx++) {
+          const e = (dx / (rx + 1)) ** 2 + (dy / (ry + 0.6)) ** 2;
+          if (e > 1 || e < 0.38) continue;
+          const hsh = ((dx * 73856093) ^ (dy * 19349663)) >>> 0;
+          px(c, cx + dx, cy + dy, hsh % 11 === 0 ? "#b8323a" : greens[hsh % 3]);
+        }
+      }
+    };
+    const sp = Math.max(4, Math.round(rx * 0.68)), spB = Math.max(2, Math.round(rx * 0.26));
+    // lighting order: front-left, back-left, back-right (pink), front-right
+    candles = [
+      { x: cx - sp - 1, base: cy + 1, col: ["#7a57a3", "#5d3f84", "#462e66"], back: false },
+      { x: cx - spB - 1, base: cy - ry + 1, col: ["#7a57a3", "#5d3f84", "#462e66"], back: true },
+      { x: cx + spB - 1, base: cy - ry + 1, col: ["#e19bc0", "#c8789f", "#9e587b"], back: true },
+      { x: cx + sp - 1, base: cy + 1, col: ["#7a57a3", "#5d3f84", "#462e66"], back: false },
+    ];
+    const drawCandle = (cd, i) => {
+      const burned = Math.max(0, adv.lit - 1 - i);
+      const ch = 9 - burned;
+      cd.top = cd.base - ch;
+      cd.lit = i < adv.lit;
+      px(c, cd.x, cd.top, cd.col[0], 1, ch);
+      px(c, cd.x + 1, cd.top, cd.col[1], 1, ch);
+      px(c, cd.x + 2, cd.top, cd.col[2], 1, ch);
+      px(c, cd.x + 1, cd.top - 1, "#2a1d14");
+    };
+    ring(false);
+    candles.forEach((cd, i) => { if (cd.back) drawCandle(cd, i); });
+    ring(true);
+    candles.forEach((cd, i) => { if (!cd.back) drawCandle(cd, i); });
+
+    // ---- things on the ledge around the wreath ----
+    const base = ly0 + Math.round((ly1 - ly0) * 0.82);
+    const wreathL = cx - rx - 2, wreathR = cx + rx + 2;
+    deco = {};
+    const mugX = gx0 + 3;
+    drawSprite(c, MUG, MUGPAL, mugX, base);
+    deco.mug = { x: mugX + 1, y: base - MUG.length + 1 };
+    const bkX = mugX + 8;
+    let by = base;
+    [{ w: 14, h: 3, c: "#8e2f36", d: "#5e1f24", dx: 0 }, { w: 12, h: 3, c: "#2f5a46", d: "#1f3d30", dx: 1 }, { w: 11, h: 2, c: "#2c3a66", d: "#1c2646", dx: 0 }].forEach((bk) => {
+      const x = bkX + bk.dx, y = by - bk.h + 1;
+      px(c, x, y, bk.c, bk.w, bk.h);
+      px(c, x, y + bk.h - 1, bk.d, bk.w, 1);
+      px(c, x + bk.w - 2, y, "#efe8d8", 2, bk.h - 1);
+      px(c, x + 2, y, "#d9b45a", 1, bk.h - 1);
+      by = y - 1;
+    });
+    // pine cone and a sprig on top of the books
+    px(c, bkX + 5, by - 2, "#8a5a33"); px(c, bkX + 4, by - 1, "#6e4630", 3, 1); px(c, bkX + 5, by - 1, "#a27045"); px(c, bkX + 4, by, "#8a5a33", 3, 1);
+    px(c, bkX + 7, by, "#2f5a3a", 3, 1); px(c, bkX + 8, by - 1, "#3d7449"); px(c, bkX + 10, by - 1, "#3d7449");
+    if (wreathL - (bkX + 14) >= 6) { drawGlyph(c, BAUBLE, bkX + 16, base - 3, "#b3343c"); px(c, bkX + 17, base - 4, "#d9b45a"); px(c, bkX + 16, base - 2, "#e4767c"); }
+    // the cat's basket (back half and cushion); the cat and the front rim are drawn every frame
+    const kx = wreathR + 3, ky = base - 12;
+    px(c, kx + 1, ky + 6, "#9e3a3f", 20, 2);
+    px(c, kx + 3, ky + 6, "#b8545a", 1, 1); px(c, kx + 17, ky + 7, "#b8545a", 1, 1);
+    px(c, kx, ky + 4, "#8a5a33", 2, 4); px(c, kx + 20, ky + 4, "#8a5a33", 2, 4);
+    px(c, kx, ky + 4, "#c08d5a", 2, 1); px(c, kx + 20, ky + 4, "#c08d5a", 2, 1);
+    deco.cat = { x: kx, y: ky };
+    if (gx1 - (kx + 22) >= 8) {
+      const ox = kx + 24;
+      drawGlyph(c, BAUBLE, ox, base - 3, "#2e6b8a"); px(c, ox + 1, base - 4, "#d9b45a"); px(c, ox, base - 2, "#6aa0bd");
+      px(c, ox + 4, base - 1, "#6e4630", 3, 2); px(c, ox + 5, base - 2, "#8a5a33");
+    }
+
+    // a string of warm-white lights along the top of the frame
+    bulbs = [];
+    const seg = Math.max(20, Math.round(W / 4)), hookY = Math.round(f * 0.45), sag = Math.max(3, Math.round(f * 0.9));
+    for (let x = 1; x < W - 1; x++) {
+      const wy = hookY + Math.round(sag * Math.sin(Math.PI * ((x % seg) / seg)));
+      px(c, x, wy, "#1f3326");
+      if (x % 7 === 3) bulbs.push({ x, y: wy + 1, ph: R() * 6.3 });
+    }
+
+    // falling snow
+    flakes = [];
+    const nFl = Math.round((gx1 - gx0) * (gy1 - gy0) / 55);
+    for (let i = 0; i < nFl; i++) {
+      const near = R() < 0.12;
+      flakes.push({ x: gx0 + R() * (gx1 - gx0), y: gy0 + R() * (gy1 - gy0), v: near ? 12 + R() * 8 : 4 + R() * 7, s: near ? 2 : 1, a: near ? 0.95 : 0.45 + R() * 0.45, ph: R() * 6.3, amp: 0.6 + R() * 1.6 });
+    }
+  }
+
+  // What stands in the window: "cottage", "jested" or "church" (Kostel Panny Marie u Obrázku).
+  const SCENE = "cottage";
+
+  // Ledge decorations: a sleeping cat (two breathing frames), a mug of tea.
+  const CAT = [
+    ".o...o...........",
+    "opo.opo...ooooo..",
+    "obbbbbo.obsbbsbbo",
+    "obebebbbbbsbbsbbo",
+    "obbnbbbbbbsbbsbbo",
+    "olllllbbbbbbbbbbo",
+    "ollllobbbbsbbsbbo",
+    ".ootttttttttttoo.",
+  ];
+  const CAT_IN = [".o...o....ooooo..", "opo.opo..obbsbbo."].concat(CAT.slice(2));
+  const CATPAL = { o: "#4a2a1a", b: "#d98a4a", s: "#b0632e", l: "#f3c48e", e: "#3a2015", n: "#e58a8a", p: "#e8a0a0", t: "#c4763c" };
+  const MUG = ["dddd..", "mmmmh.", "mRmm.h", "mmmmh.", "smms.."];
+  const MUGPAL = { d: "#5a3424", m: "#ece6da", R: "#b3343c", h: "#d8d0c2", s: "#c4baa8" };
+  const BAUBLE = [".X.", "XXX", "XXX", ".X."];
+  function drawBasketFront(c, kx, ky) {
+    px(c, kx, ky + 8, "#c08d5a", 22, 1);
+    for (let r = 0; r < 3; r++) {
+      const y = ky + 9 + r;
+      for (let x = kx + 1 + r; x < kx + 21 - r; x++) px(c, x, y, ((x + y) >> 1) % 2 ? "#8a5a33" : "#6e4630");
+    }
+    px(c, kx + 4, ky + 12, "#3a2418", 14, 1);
+  }
+
+  // An anonymous winter night: a log cottage on a snowy meadow, forest ridge, frozen pond.
+  const COTTAGE = [
+    ".........sss.....",
+    "..........C......",
+    "........r.C......",
+    ".......rrrC......",
+    "......rrrrr......",
+    ".....rrrrrrr.....",
+    "....rrrrrrrrr....",
+    "...rrrrrrrrrrr...",
+    "..RRRRRRRRRRRRR..",
+    "...bbbbbbbbbbb...",
+    "...BLLBBDBBLLB...",
+    "...bLLbbDbbLLb...",
+    "...BBBBBDBBBBB...",
+    "..sssssssssssss..",
+  ];
+  const HPAL = { s: "#eef3fb", C: "#3a2a22", r: "#e3e9f4", R: "#8f9fc6", B: "#5a3e2c", b: "#3e2a1f", L: "#ffcf6b", D: "#2a1d14" };
+
+  function sceneCottage(b, R) {
+    const { gx0, gx1, gy0, gy1, midX, bar } = G;
+    const glassW = gx1 - gx0, glassH = gy1 - gy0;
+    wins = []; smokers = []; puffs = []; beacons = []; glints = [];
+
+    // soft far hills
+    const far = (x) => gy0 + Math.round(glassH * 0.52 + 2.5 * Math.sin(x * 0.04 + 0.7) + 1.2 * Math.sin(x * 0.13));
+    for (let x = gx0; x < gx1; x++) { const y = far(x); px(b, x, y, "#5a6ca2"); px(b, x, y + 1, "#34447a", 1, gy1 - y - 1); }
+
+    // spruce forest along a ridge
+    const ridgeY = (x) => gy0 + Math.round(glassH * 0.64 + 1.5 * Math.sin(x * 0.06 + 2));
+    for (let x = gx0; x < gx1; x++) px(b, x, ridgeY(x), "#1b2546", 1, gy1 - ridgeY(x));
+    for (let x = gx0 - 2; x < gx1 + 2; x += 2 + Math.floor(R() * 3)) {
+      const h = 5 + Math.floor(R() * 7), base = ridgeY(x) + 1;
+      for (let k = 0; k < h; k++) {
+        const hw = Math.floor(k * 0.4);
+        px(b, x - hw, base - h + k, "#1b2546", hw * 2 + 1, 1);
+        if (k > 1 && k % 3 === 0) px(b, x - hw, base - h + k, "#3a4a78", hw + 1, 1);
+      }
+    }
+
+    // snowy meadow, lighter towards the viewer
+    const meadow = (x) => gy0 + Math.round(glassH * 0.74 + 2.5 * Math.sin(x * 0.045 + 1.2));
+    for (let x = gx0; x < gx1; x++) {
+      const top = meadow(x);
+      px(b, x, top, "#c3cde8");
+      for (let y = top + 1; y < gy1; y++) {
+        const t = (y - top) / Math.max(1, gy1 - top);
+        px(b, x, y, t * 16 > BAYER[y & 3][x & 3] ? "#a3b1d8" : "#8190bf");
+      }
+      if (R() < 0.05) px(b, x, top + 2 + Math.floor(R() * Math.max(1, gy1 - top - 2)), "#dfe6f6");
+    }
+
+    // frozen pond under the moon, with a shimmering reflection
+    const moonX = gx0 + Math.round(glassW * 0.77);
+    const pcx = moonX, pcy = gy1 - 7, prx = Math.min(15, Math.round(glassW * 0.13)), pry = 3;
+    for (let dy = -pry; dy <= pry; dy++) {
+      for (let dx = -prx; dx <= prx; dx++) {
+        const e = (dx / prx) ** 2 + (dy / (pry + 0.4)) ** 2;
+        if (e <= 1) px(b, pcx + dx, pcy + dy, e > 0.6 && dy < 0 ? "#2c3a66" : "#3d4c7d");
+      }
+    }
+    for (let i = 0; i < 12; i++) glints.push({ x: pcx + Math.round((R() - 0.5) * 4), y: pcy - 2 + Math.floor(R() * 5), ph: R() * 6.3 });
+
+    // the cottage, its warm light on the snow, and smoke from the chimney
+    const cw = COTTAGE[0].length;
+    const hx = gx0 + Math.round((midX - Math.floor(bar / 2) - gx0) / 2) - (cw >> 1);
+    const hb = meadow(hx + 8) + 2;
+    const glow = b.createRadialGradient(hx + 8, hb - 3, 1, hx + 8, hb - 3, 18);
+    glow.addColorStop(0, "rgba(255,190,100,0.2)");
+    glow.addColorStop(1, "rgba(255,190,100,0)");
+    b.save(); b.globalCompositeOperation = "lighter"; b.fillStyle = glow; b.fillRect(gx0, gy0, glassW, glassH); b.restore();
+    drawSprite(b, COTTAGE, HPAL, hx, hb);
+    smokers.push({ x: hx + 10, y: hb - COTTAGE.length, next: 0 });
+
+    // footprints from the door towards the window, and a lantern by the path
+    let fx = hx + 8, fy = hb + 1;
+    while (fy < gy1 - 1) {
+      px(b, fx, fy, "#7181b0"); px(b, fx + 2, fy + 1, "#7181b0");
+      fy += 2; fx += (fy % 6 === 0 ? 1 : 0) + (R() < 0.3 ? 1 : 0);
+    }
+    px(b, hx + 14, hb - 3, "#2a1d14", 1, 4);
+    px(b, hx + 14, hb - 5, "#2a1d14", 1, 1);
+    px(b, hx + 14, hb - 4, "#ffd27a");
+
+    // foreground spruces framing the view
+    spruce(b, gx0 + 3, gy1 + 2, Math.round(glassH * 0.36));
+    spruce(b, gx1 - 5, gy1 + 2, Math.round(glassH * 0.42));
+    spruce(b, gx1 - 12, gy1 + 2, Math.round(glassH * 0.26));
+  }
+
+
+  // Ještěd: the hyperboloid hotel and transmitter on the summit, with red aviation lights on the mast.
+  const JESTED = [
+    ".....A.....",
+    ".....a.....",
+    ".....A.....",
+    ".....a.....",
+    ".....S.....",
+    ".....S.....",
+    "....sSS....",
+    "....sSS....",
+    "....sSS....",
+    "....sLS....",
+    "...ssSSS...",
+    "...ssSSS...",
+    "...sLLLL...",
+    "...ssSSS...",
+    "..ssSSSSS..",
+    "..sLLLLLL..",
+    "..ssSSSSS..",
+    ".ssSSSSSSS.",
+    ".sLLLLLLLL.",
+    ".ssSSSSSSS.",
+    "sssSSSSSSSS",
+    "sDLDDLDDLDS",
+  ];
+  const JPAL = { A: "#6a2a2a", a: "#aab4cc", S: "#cfd7ea", s: "#8994b2", L: "#ffd98a", D: "#2b3354" };
+  function drawSprite(b, rows, pal, x0, base) {
+    const top = base - rows.length + 1;
+    rows.forEach((row, j) => {
+      for (let i = 0; i < row.length; i++) if (row[i] !== ".") px(b, x0 + i, top + j, pal[row[i]]);
+    });
+  }
+
+  function sceneJested(b, R) {
+    const { gx0, gx1, gy0, gy1, midX, bar } = G;
+    const glassW = gx1 - gx0, glassH = gy1 - gy0;
+    const peakX = gx0 + Math.round((midX - Math.floor(bar / 2) - gx0) * 0.5);
+    const peakY = gy0 + Math.round(glassH * 0.68);
+    wins = []; smokers = []; puffs = []; beacons = [];
+
+    // far ridge of the Jizera mountains
+    const far = (x) => gy0 + Math.round(glassH * 0.8 + 2 * Math.sin(x * 0.05 + 1) + Math.sin(x * 0.17));
+    for (let x = gx0; x < gx1; x++) { const y = far(x); px(b, x, y, "#3a4878"); px(b, x, y + 1, "#222d52", 1, gy1 - y - 1); }
+
+    // the long Ještěd ridge rising to a sharp summit
+    const mtn = (x) => {
+      const d = Math.abs(x - peakX);
+      const y = d < 5 ? peakY : d < 20 ? peakY + (d - 4) * 0.55 : peakY + 8.8 + (d - 20) * 0.2;
+      return Math.round(y + Math.sin(x * 0.07) * (d > 8 ? 1.2 : 0));
+    };
+    for (let x = gx0; x < gx1; x++) {
+      const top = mtn(x);
+      if (top >= gy1) continue;
+      px(b, x, top, "#c9d3ec");
+      for (let y = top + 1; y < gy1; y++) {
+        const snowy = (y < peakY + 8 ? 12 : 5) - Math.min(4, (y - top) >> 2);
+        px(b, x, y, BAYER[y & 3][x & 3] < snowy ? "#7d8bb9" : (R() < 0.15 ? "#1d2646" : "#2b365c"));
+      }
+    }
+
+    // a lit ski run down the right flank
+    for (let x = peakX + 6; x < Math.min(gx1, peakX + 45); x++) {
+      const y = mtn(x) + 1 + Math.round((x - peakX - 6) * 0.12);
+      if (y >= gy1 - 7) break;
+      px(b, x, y, "#a9b6dc", 1, 2);
+      if ((x - peakX) % 6 === 0) wins.push({ x, y: y - 1, lit: true, c: "#fff1c2", off: "#2b365c" });
+    }
+
+    // the building, with a soft light around it
+    const hx = peakX, hy = peakY - 12;
+    const glow = b.createRadialGradient(hx, hy, 1, hx, hy, 26);
+    glow.addColorStop(0, "rgba(225,230,255,0.2)");
+    glow.addColorStop(1, "rgba(225,230,255,0)");
+    b.save(); b.globalCompositeOperation = "lighter"; b.fillStyle = glow; b.fillRect(gx0, gy0, glassW, glassH); b.restore();
+    const bx = peakX - 5;
+    drawSprite(b, JESTED, JPAL, bx, peakY);
+    JESTED.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === "A") beacons.push({ x: bx + i, y: peakY - JESTED.length + 1 + j }); });
+
+    // Liberec in the valley: a band of town lights
+    const vt = (x) => gy1 - 9 + Math.round(Math.sin(x * 0.13 + 1) * 1.2 + Math.sin(x * 0.31) * 0.6);
+    for (let x = gx0; x < gx1; x++) {
+      const y0 = vt(x);
+      px(b, x, y0, "#2a3459");
+      px(b, x, y0 + 1, "#161d38", 1, gy1 - y0 - 1);
+      for (let y = y0 + 1; y < gy1; y++) {
+        if (R() < 0.2) wins.push({ x, y, lit: R() < 0.85, c: R() < 0.2 ? "#e9eefc" : (R() < 0.5 ? "#ffd27a" : "#f2a84b"), off: "#161d38" });
+      }
+    }
+    // villages on the lower slopes
+    for (let i = 0; i < glassW / 6; i++) {
+      const x = gx0 + Math.floor(R() * glassW), y = mtn(x) + 4 + Math.floor(R() * 6);
+      if (y < vt(x) && y > peakY + 9) wins.push({ x, y, lit: R() < 0.7, c: "#f2b24b", off: "#2b365c" });
+    }
+
+    spruce(b, gx0 + Math.round(glassW * 0.92), gy1 + 2, Math.round(glassH * 0.28));
+    spruce(b, gx0 + Math.round(glassW * 0.83), gy1 + 2, Math.round(glassH * 0.2));
+  }
+
+  function sceneChurch(b, R) {
+    const { gx0, gx1, gy0, gy1, midX, bar } = G;
+    // distant ridge, then a moonlit sea of fog below the hill
+    const glassW = gx1 - gx0, glassH = gy1 - gy0;
+    const churchBase = gy1 - 4;
+    const chX = gx0 + Math.round((midX - Math.floor(bar / 2) - gx0) / 2) - 11;
+    const ridge = (x) => gy0 + Math.round(glassH * 0.43 + 3 * Math.sin(x * 0.035 + 2.4) + 1.2 * Math.sin(x * 0.11));
+    for (let x = gx0; x < gx1; x++) {
+      const ry = ridge(x);
+      px(b, x, ry, "#2e3c67");
+      px(b, x, ry + 1, "#1c2649", 1, gy1 - ry - 1);
+    }
+    const fogTop = (x) => gy0 + Math.round(glassH * 0.5 + 2 * Math.sin(x * 0.09 + 0.5) + 1.5 * Math.sin(x * 0.23 + 2));
+    const fogA = "#6d7dae", fogB = "#51608f", fogC = "#3c4973", crest = "#98a7d2";
+    for (let x = gx0; x < gx1; x++) {
+      const ft = fogTop(x);
+      if (BAYER[ft & 3][x & 3] < 6) px(b, x, ft - 1, "#45547f");
+      px(b, x, ft, crest);
+      for (let y = ft + 1; y < gy1; y++) {
+        const k = Math.min(1, (y - ft) / (glassH * 0.35)) * 2;
+        const lo = k < 1 ? fogA : fogB, hi = k < 1 ? fogB : fogC, f2 = k < 1 ? k : k - 1;
+        px(b, x, y, f2 * 16 > BAYER[y & 3][x & 3] ? hi : lo);
+      }
+    }
+    for (let i = 0; i < Math.round(glassW / 8); i++) {
+      const cx = gx0 + R() * glassW, rr = 2 + R() * 3, cy = fogTop(Math.round(cx)) + 1;
+      for (let dx = -Math.floor(rr * 1.6); dx <= Math.floor(rr * 1.6); dx++) {
+        const x = Math.round(cx + dx);
+        if (x < gx0 || x >= gx1) continue;
+        const h = Math.floor(rr * Math.sqrt(Math.max(0, 1 - (dx / (rr * 1.6)) ** 2)));
+        if (h < 1) continue;
+        px(b, x, cy - h + 1, fogA, 1, h);
+        px(b, x, cy - h, crest);
+      }
+    }
+
+    // floodlight halo around the church
+    const glow = b.createRadialGradient(chX + 11, churchBase - 14, 1, chX + 11, churchBase - 14, 30);
+    glow.addColorStop(0, "rgba(255,200,120,0.22)");
+    glow.addColorStop(1, "rgba(255,200,120,0)");
+    b.save(); b.globalCompositeOperation = "lighter"; b.fillStyle = glow; b.fillRect(gx0, gy0, glassW, glassH); b.restore();
+
+    // the hill and the church on top
+    for (let x = gx0; x < gx1; x++) {
+      const d = (x - (chX + 11)) / 28;
+      const hy = churchBase + 1 + Math.round(d * d * 14);
+      if (hy < gy1) { px(b, x, hy, "#9aa8d0"); px(b, x, hy + 1, "#6c7aa6", 1, gy1 - hy - 1); }
+    }
+    drawChurch(b, chX, churchBase);
+
+    // frosted birches around the hill; trees in front of the church stay low
+    wins = []; smokers = []; puffs = []; beacons = [];
+    const crowns = [];
+    for (let i = 0; i < Math.round(glassW / 4.5); i++) {
+      const cx = gx0 + R() * glassW, r = 4 + R() * 6;
+      let cy = churchBase - 6 + R() * (gy1 - churchBase + 12);
+      if (cx > chX - r && cx < chX + 22 + r) cy = Math.max(cy, churchBase + r * 0.6 - 1);
+      crowns.push({ cx, cy, r });
+    }
+    crowns.sort((p, q) => p.cy - q.cy);
+    const twig = ["#3e3350", "#4d4062", "#5c4d6f"];
+    for (const c of crowns) {
+      const tx = Math.round(c.cx);
+      for (let y = Math.round(c.cy - c.r * 0.3); y < gy1; y++) px(b, tx, y, (y * 7 + tx) % 5 === 0 ? "#3a3348" : "#b7bfd6");
+      const rx = c.r, ry = c.r * 0.85;
+      for (let dy = -Math.ceil(ry); dy <= Math.ceil(ry); dy++) {
+        for (let dx = -Math.ceil(rx); dx <= Math.ceil(rx); dx++) {
+          const e = (dx / rx) ** 2 + (dy / ry) ** 2;
+          if (e > 1 || R() > 0.62 - e * 0.25) continue;
+          const frost = (dy < 0 && R() < 0.4) || R() < 0.12;
+          px(b, Math.round(c.cx + dx), Math.round(c.cy + dy), frost ? (R() < 0.5 ? "#b9c4e2" : "#d7def0") : twig[Math.floor(R() * 3)]);
+        }
+      }
+    }
+
+    // snowy spruces on the right, as in the photo
+    spruce(b, gx0 + Math.round(glassW * 0.8), gy1 + 2, Math.round(glassH * 0.4));
+    spruce(b, gx0 + Math.round(glassW * 0.93), gy1 + 2, Math.round(glassH * 0.3));
+  }
+
+  // Kostel Panny Marie u Obrázku, drawn by hand as a 22×36 sprite: tower with a bell cap and cross,
+  // round window, gable with a rose window, arcade at the foot. Floodlit for the night.
+  const CHURCH = [
+    "........c.............",
+    ".......ccc............",
+    "........c.............",
+    "........T.............",
+    ".......sss............",
+    ".......RRr............",
+    "......sssss...........",
+    "......RRRRr...........",
+    ".....RRRRRRr..........",
+    ".....TTTTTTT..........",
+    ".....TWWTWWT..........",
+    ".....TWTLTWT..........",
+    ".....TWWTWWT..........",
+    ".....TWWWWWT..........",
+    ".....TWWTWWT..........",
+    ".....TWTLTWT..........",
+    ".....TWTLTWT..........",
+    ".....TWTLTWT..........",
+    ".....TWWWWWT..........",
+    ".....TWWWWWT....rr....",
+    ".....TWWWWWT...rWWr...",
+    ".....TWTDTWT..rWTTWr..",
+    ".....TWWWWWT.rWTLLTWr.",
+    ".....TWWWWWTrWWWTTWWWr",
+    "...rrTWWWWWTTTTTTTTTTT",
+    "..rrRTWWWWWTwWWWWWWWWW",
+    ".rrRRTWWWWWTwWWWTTWWWW",
+    ".TTTTTWWWWWTwWWTLLTWWW",
+    ".wwLwTWWWWWTwDWTLLTWDW",
+    ".wwLwTWTDTWTwDWTLLTWDW",
+    ".wwwwTWWWWWTwWWTTTTWWW",
+    ".wwwwTWWWWWTwWWWWWWWWW",
+    ".wwwwTWTTTWTwTTWTTWTTW",
+    ".wwwwTWTLTWTwTDTTDTTDT",
+    ".wwwwTWTLTWTwTDTTDTTDT",
+    "ssssssssssssssssssssss",
+  ];
+  const CPAL = { c: "#d9c27a", T: "#4a3a33", W: "#caa96b", w: "#9b7f4f", R: "#3a4a6e", r: "#dfe6f2", s: "#eef3fb", L: "#ffd27a", D: "#2a2238" };
+  function drawChurch(b, x0, base) {
+    const top = base - CHURCH.length + 1;
+    CHURCH.forEach((row, j) => {
+      for (let i = 0; i < row.length; i++) if (row[i] !== ".") px(b, x0 + i, top + j, CPAL[row[i]]);
+    });
+  }
+
+  function spruce(b, x, base, ht) {
+    const tier = 5;
+    for (let r0 = 0; r0 <= ht; r0++) {
+      const y = base - ht + r0, local = r0 % tier;
+      const hw = Math.floor(r0 * 0.24 + local * 0.55);
+      px(b, x - hw, y, "#0b1f1c", hw * 2 + 1, 1);
+      px(b, x + hw, y, "#163530");
+      if (local === 0 && r0 > 0) px(b, x - hw + 1, y, "#c3cfe8", Math.max(1, Math.round(hw * 1.2)), 1);
+    }
+    px(b, x, base - ht - 1, "#c3cfe8");
+  }
+
+  function draw(now, dt) {
+    const t = now / 1000;
+    const { gx0, gx1, gy0, gy1 } = G;
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(bg, 0, 0);
+    for (const s of stars) {
+      ctx.globalAlpha = reduceMotion ? s.b : s.b * (0.55 + 0.45 * Math.sin(t * s.sp + s.ph));
+      px(ctx, s.x, s.y, "#f4f1ff");
+    }
+    ctx.globalAlpha = 1;
+    for (const w of wins) px(ctx, w.x, w.y, w.lit ? (w.c || "#f2b24b") : (w.off || "#0e1430"));
+    for (const g of glints) { ctx.globalAlpha = reduceMotion ? 0.7 : 0.3 + 0.7 * Math.abs(Math.sin(t * 1.7 + g.ph)); px(ctx, g.x, g.y, "#e4e9f6"); }
+    ctx.globalAlpha = 1;
+    const beaconOn = reduceMotion || (t % 1.6) < 0.8;
+    for (const bc of beacons) {
+      px(ctx, bc.x, bc.y, beaconOn ? "#ff5a4a" : "#6a2a2a");
+      if (beaconOn) { ctx.globalAlpha = 0.35; px(ctx, bc.x - 1, bc.y, "#ff5a4a"); px(ctx, bc.x + 1, bc.y, "#ff5a4a"); ctx.globalAlpha = 1; }
+    }
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(gx0, gy0, gx1 - gx0, gy1 - gy0); ctx.clip();
+    if (!reduceMotion) {
+      if (!shoot && t > nextShoot) shoot = { t0: t, x: gx0 + (gx1 - gx0) * (0.3 + Math.random() * 0.6), y: gy0 + 3 + Math.random() * (gy1 - gy0) * 0.22 };
+      if (shoot) {
+        const p = (t - shoot.t0) / 0.9;
+        if (p > 1 || p < 0) { shoot = null; nextShoot = t + 9 + Math.random() * 14; }
+        else {
+          const hx = shoot.x - p * 30, hy = shoot.y + p * 13;
+          for (let k = 0; k < 7; k++) { ctx.globalAlpha = (1 - k / 7) * (1 - p * 0.6); px(ctx, Math.round(hx + k * 2.2), Math.round(hy - k * 0.95), "#fff6dc"); }
+          ctx.globalAlpha = 1;
+        }
+      }
+    }
+    if (!reduceMotion) {
+      for (const sm of smokers) {
+        sm.next -= dt;
+        if (sm.next <= 0) { puffs.push({ x: sm.x, y: sm.y, age: 0 }); sm.next = 0.7 + Math.random() * 0.6; }
+      }
+      for (let i = puffs.length - 1; i >= 0; i--) {
+        const p = puffs[i]; p.age += dt; p.y -= 2.4 * dt; p.x -= 1.1 * dt;
+        if (p.age > 4) puffs.splice(i, 1);
+      }
+    }
+    for (const p of puffs) { ctx.globalAlpha = 0.3 * (1 - p.age / 4); px(ctx, Math.round(p.x + Math.sin(p.age * 2) * 0.7), Math.round(p.y), "#a8b3d4"); }
+    for (const fl of flakes) {
+      if (!reduceMotion) {
+        fl.y += fl.v * dt;
+        fl.x += (-1.4 + Math.sin(t * 0.8 + fl.ph) * fl.amp) * dt;
+        if (fl.y > gy1) { fl.y = gy0 - 2; fl.x = gx0 + Math.random() * (gx1 - gx0); }
+        if (fl.x < gx0 - 2) fl.x = gx1; else if (fl.x > gx1 + 1) fl.x = gx0 - 1;
+      }
+      ctx.globalAlpha = fl.a;
+      px(ctx, Math.round(fl.x), Math.round(fl.y), "#eef3fb", fl.s, fl.s);
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    ctx.drawImage(fr, 0, 0);
+
+    // candle flames and their glow
+    const lit = candles.filter((cd) => cd.lit);
+    if (lit.length) {
+      const flick = reduceMotion ? 1 : 0.85 + 0.15 * Math.sin(t * 9.3) * Math.sin(t * 3.7 + 1);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const gx = G.midX, gy = G.gy1 + 2;
+      const rad = Math.max(30, W * 0.42);
+      const grd = ctx.createRadialGradient(gx, gy, 1, gx, gy, rad);
+      grd.addColorStop(0, `rgba(255,170,70,${(0.07 + 0.035 * lit.length) * flick})`);
+      grd.addColorStop(1, "rgba(255,170,70,0)");
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+      for (const cd of lit) {
+        const fx = cd.x + 1, fy = cd.top - 2;
+        const sway = reduceMotion ? 0 : (Math.sin(t * 7 + cd.x) > 0.75 ? 1 : (Math.sin(t * 6.1 + cd.x * 2) < -0.8 ? -1 : 0));
+        px(ctx, fx, fy, "#ffb347");
+        px(ctx, fx, fy - 1, "#ffe08a");
+        px(ctx, fx + sway, fy - 2, "#fff4cf");
+        if (!reduceMotion && Math.sin(t * 11 + cd.x) > 0.2) px(ctx, fx + sway, fy - 3, "rgba(255,230,160,0.6)");
+      }
+    }
+    // fairy lights
+    for (const bl of bulbs) {
+      const a = reduceMotion ? 0.85 : 0.55 + 0.45 * Math.sin(t * 1.3 + bl.ph);
+      ctx.globalAlpha = 0.22 * a; px(ctx, bl.x - 1, bl.y - 1, "#ffd27a", 3, 4);
+      ctx.globalAlpha = 0.5 + 0.5 * a; px(ctx, bl.x, bl.y, "#fff0c8", 1, 2);
+    }
+    ctx.globalAlpha = 1;
+    // steam from the mug
+    if (deco.mug && !reduceMotion) {
+      for (let k = 0; k < 3; k++) {
+        const ph = (t * 0.5 + k / 3) % 1;
+        ctx.globalAlpha = 0.5 * (1 - ph);
+        px(ctx, deco.mug.x + 1 + Math.round(Math.sin(t * 2 + k * 2.1) * 0.8), Math.round(deco.mug.y - 1 - ph * 6), "#e8edf7");
+      }
+      ctx.globalAlpha = 1;
+    }
+    // the cat, breathing slowly in its basket
+    if (deco.cat) {
+      const inhale = !reduceMotion && Math.sin(t * Math.PI * 2 / 3.8) > 0.15;
+      drawSprite(ctx, inhale ? CAT_IN : CAT, CATPAL, deco.cat.x + 2, deco.cat.y + CAT.length - 1);
+      drawBasketFront(ctx, deco.cat.x, deco.cat.y);
+    }
+  }
+
+  let last = 0;
+  function loop(now) {
+    if (now - last >= 33) { const dt = Math.min(0.1, (now - last) / 1000); last = now; draw(now, dt); }
+    requestAnimationFrame(loop);
+  }
+  resize();
+  let rT;
+  new ResizeObserver(() => { clearTimeout(rT); rT = setTimeout(resize, 120); }).observe(cv.parentElement);
+  if (!reduceMotion) {
+    requestAnimationFrame((n) => { last = n; requestAnimationFrame(loop); });
+    setInterval(() => { if (wins.length) { const w = wins[Math.floor(Math.random() * wins.length)]; w.lit = !w.lit; } }, 1500);
+  }
+
+  /* ---------- Unique envelopes: every letter gets its own paper, pattern, seal and stamp ---------- */
+  const PAPERS = [
+    { paper: "#dfe8f5", shade: "#c6d3e8", line: "#33436a", letter: "#f3f6fc" },
+    { paper: "#d8b98e", shade: "#c3a074", line: "#4f3726", letter: "#faf4ea" },
+    { paper: "#d5e3d2", shade: "#bccfb8", line: "#30483a", letter: "#f3f8f2" },
+    { paper: "#efd9dc", shade: "#e0c1c6", line: "#5e3540", letter: "#fcf4f5" },
+    { paper: "#e2dcef", shade: "#cbc2e2", line: "#43385f", letter: "#f7f5fc" },
+    { paper: "#f2e7bf", shade: "#e3d39f", line: "#5c4b22", letter: "#fdfaf0" },
+    { paper: "#f4f6fa", shade: "#dde2ec", line: "#323c58", letter: "#ffffff" },
+    { paper: "#d3ebe8", shade: "#b7d8d3", line: "#284c48", letter: "#f2faf9" },
+  ];
+  const ACCENTS = ["#b3343c", "#2e7d4f", "#d9a63a", "#2a3f7a", "#7a3f7a", "#2a7a78"];
+  const SEALS = [
+    [".XXX.", "XXXXX", "XXXXX", "XXXXX", ".XXX."],
+    [".X.X.", "XXXXX", "XXXXX", ".XXX.", "..X.."],
+    ["..X..", ".XXX.", "XXXXX", ".XXX.", ".X.X."],
+    ["..X..", ".XXX.", "XXXXX", ".XXX.", "..X.."],
+  ];
+  const MOTIFS = [
+    ["..X..", ".XXX.", "XXXXX", "..X.."],
+    ["..X..", ".XXX.", "XXXXX", ".X.X.", "X...X"],
+    [".X.X.", "XXXXX", "XXXXX", ".XXX.", "..X.."],
+    ["X.X.X", ".XXX.", "XXXXX", ".XXX.", "X.X.X"],
+    ["..X..", ".XXX.", ".XXX.", "XXXXX", "..X.."],
+    [".XXX.", "XX...", "XX...", "XX...", ".XXX."],
+  ];
+  function hashStr(s) { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function envSpec(id) {
+    const R = rng(hashStr(id));
+    const pick = (a) => a[Math.floor(R() * a.length)];
+    const p = pick(PAPERS);
+    const seal = pick(ACCENTS);
+    let stampBg = pick(ACCENTS);
+    if (stampBg === seal) stampBg = ACCENTS[(ACCENTS.indexOf(seal) + 3) % ACCENTS.length];
+    return { ...p, pattern: Math.floor(R() * 6), seal, sealShape: Math.floor(R() * SEALS.length), stampBg, motif: Math.floor(R() * MOTIFS.length), twine: R() < 0.25 };
+  }
+  function drawGlyph(c, rows, x0, y0, col) {
+    rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === "X") px(c, x0 + i, y0 + j, col); });
+  }
+  function drawStamp(c, x, y, sp, notch) {
+    px(c, x, y, "#fbfbf7", 9, 11);
+    for (let i = 0; i < 9; i += 2) { px(c, x + i, y, notch); px(c, x + i, y + 10, notch); }
+    for (let j = 0; j < 11; j += 2) { px(c, x, y + j, notch); px(c, x + 8, y + j, notch); }
+    px(c, x + 1, y + 1, sp.stampBg, 7, 9);
+    drawGlyph(c, MOTIFS[sp.motif], x + 2, y + 3, sp.stampBg === "#d9a63a" ? "#2a3f7a" : "#fbfbf7");
+  }
+  function drawEnvelope(cv, sp, hasImage) {
+    cv.width = 48; cv.height = 32;
+    const c = cv.getContext("2d");
+    px(c, 0, 0, sp.line, 48, 32);
+    px(c, 1, 1, sp.paper, 46, 30);
+    const inLabel = (x, y) => y >= 20 && y <= 29 && x >= 5 && x <= 42;
+    for (let y = 1; y < 31; y++) {
+      for (let x = 1; x < 47; x++) {
+        if (inLabel(x, y)) continue;
+        let col = null;
+        if (sp.pattern === 1 && (x < 3 || x > 44 || y < 3 || y > 28)) { const k = ((x + y) >> 1) % 3; col = k === 0 ? "#b3343c" : k === 2 ? "#2a3f7a" : null; }
+        else if (sp.pattern === 2 && x % 6 === 3 && y % 6 === 3) col = sp.shade;
+        else if (sp.pattern === 3 && y % 4 === 0) col = sp.shade;
+        else if (sp.pattern === 5 && ((x >> 2) + (y >> 2)) % 2 === 0) col = sp.shade;
+        if (col) px(c, x, y, col);
+      }
+    }
+    if (sp.pattern === 4) {
+      for (let y = 4; y < 31; y += 8) {
+        for (let x = 4 + ((y >> 3) % 2) * 5; x < 46; x += 10) {
+          if (inLabel(x, y) || inLabel(x, y + 1) || inLabel(x, y - 1)) continue;
+          px(c, x, y - 1, sp.shade, 1, 3); px(c, x - 1, y, sp.shade, 3, 1);
+        }
+      }
+    }
+    // flap
+    for (let y = 1; y <= 17; y++) {
+      const t = (y - 1) / 16;
+      const xl = Math.round(1 + t * 23), xr = Math.round(46 - t * 22);
+      if (xr >= xl) px(c, xl, y, sp.shade, xr - xl + 1, 1);
+      px(c, xl, y, sp.line); px(c, xr, y, sp.line);
+    }
+    if (sp.twine) {
+      for (let y = 1; y < 31; y++) if (!inLabel(24, y)) px(c, 24, y, "#9a7448");
+      for (let x = 1; x < 47; x++) if (!inLabel(x, 17)) px(c, x, 17, "#9a7448");
+    }
+    drawGlyph(c, SEALS[sp.sealShape], 22, 15, sp.seal);
+    c.globalAlpha = 0.45; px(c, 23, 16, "#ffffff"); c.globalAlpha = 1;
+    drawStamp(c, 37, 3, sp, sp.shade);
+    if (hasImage) {
+      const g = "#8f98ad";
+      px(c, 5, 0, g, 1, 9); px(c, 8, 1, g, 1, 7); px(c, 6, 0, g, 2, 1); px(c, 6, 8, g, 2, 1); px(c, 6, 2, "#c5cbd8", 1, 5);
+    }
+  }
+
+  /* ---------- Letters ---------- */
+  const validId = (v) => typeof v === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(v);
+  const state = { assets: null, db: null, myId: null, isOwner: false, canWrite: null, letters: [], loaded: false, failed: false, editing: null, fresh: new Set() };
+  const lettersEl = $("#letters"), noteEl = $("#sill-note"), writeBtn = $("#write-btn"), permNote = $("#perm-note");
+  const str = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+
+  function tilt(id) { let h = 0; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) | 0; return ((Math.abs(h) % 9) - 4) * 0.7; }
+
+  function renderSill() {
+    lettersEl.textContent = "";
+    for (const l of state.letters) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "env" + (state.fresh.has(l.id) ? " drop" : "");
+      b.dataset.id = l.id;
+      b.style.setProperty("--tilt", tilt(l.id) + "deg");
+      const from = str(l.from, 40) || "Bez podpisu";
+      b.setAttribute("aria-label", "Dopis od: " + from + (validId(l.image) ? ", s obrázkem" : ""));
+      const sp = envSpec(l.id);
+      const art = document.createElement("canvas"); art.className = "env-art"; art.setAttribute("aria-hidden", "true");
+      drawEnvelope(art, sp, validId(l.image));
+      const nm = document.createElement("span"); nm.className = "env-name"; nm.textContent = from; nm.style.color = sp.line;
+      b.append(art, nm);
+      b.addEventListener("click", () => openLetter(l.id));
+      lettersEl.append(b);
+    }
+    state.fresh.clear();
+    let note = "";
+    if (!state.db) note = state.failed ? "Dopisy uvidíš, když stránku otevřeš přihlášený na claude.ai." : "Nosím dopisy…";
+    else if (state.failed) note = "Dopisy se teď nepodařilo načíst. Zkus stránku otevřít znovu.";
+    else if (!state.loaded && !state.letters.length) note = "Nosím dopisy…";
+    else if (!state.letters.length) note = state.canWrite === false ? "Parapet je zatím prázdný." : "Parapet je zatím prázdný. Polož sem první dopis.";
+    noteEl.textContent = note;
+    noteEl.hidden = !note;
+  }
+
+  function canEditLetter(l) {
+    if (!state.db || state.canWrite === false) return false;
+    return state.isOwner || (!!l.author && l.author === state.myId);
+  }
+
+  const letterDlg = $("#letter-dlg");
+  let openId = null;
+  function openLetter(id) {
+    const l = state.letters.find((x) => x.id === id);
+    if (l) showLetter(l, false);
+  }
+  function showLetter(l, fromTrash) {
+    openId = fromTrash ? null : l.id;
+    const sp = envSpec(l.id);
+    letterDlg.style.setProperty("--paper", sp.letter);
+    const sc = $("#lt-stamp"), sctx = sc.getContext("2d");
+    sctx.clearRect(0, 0, sc.width, sc.height);
+    drawStamp(sctx, 0, 0, sp, sp.letter);
+    const wishText = str(l.wish, 2000);
+    $("#lt-wish").textContent = wishText;
+    $("#lt-wish").hidden = !wishText;
+    const fig = $("#lt-figure"), img = $("#lt-img");
+    if (validId(l.image)) {
+      fig.hidden = false; img.hidden = false; $("#lt-img-err").hidden = true;
+      img.src = "/_blob/" + l.image;
+    } else {
+      fig.hidden = true; img.removeAttribute("src");
+    }
+    const sizes = str(l.sizes, 600), avoid = str(l.avoid, 600);
+    $("#lt-sizes").textContent = sizes; $("#lt-sizes-box").hidden = !sizes;
+    $("#lt-avoid").textContent = avoid; $("#lt-avoid-box").hidden = !avoid;
+    $("#lt-from").textContent = "— " + (str(l.from, 40) || "Bez podpisu");
+    $("#lt-edit").hidden = fromTrash || !canEditLetter(l);
+    letterDlg.showModal();
+    $("#lt-close").focus();
+  }
+  $("#lt-img").addEventListener("error", () => { if ($("#lt-img").getAttribute("src")) { $("#lt-img").hidden = true; $("#lt-img-err").hidden = false; } });
+  $("#lt-close").addEventListener("click", () => letterDlg.close());
+  letterDlg.addEventListener("click", (e) => { if (e.target === letterDlg) letterDlg.close(); });
+  $("#lt-edit").addEventListener("click", () => { const l = state.letters.find((x) => x.id === openId); letterDlg.close(); if (l) openForm(l); });
+
+  const formDlg = $("#form-dlg"), form = $("#letter-form"), statusEl = $("#f-status");
+  const fFrom = $("#f-from"), fWish = $("#f-wish");
+  const saveBtn = $("#f-save"), delBtn = $("#f-delete"), confirmBox = $("#f-confirm");
+  function setStatus(t, kind) { statusEl.textContent = t; statusEl.dataset.kind = kind || "error"; }
+
+  /* attachment: one picture per letter (a drawing or a photo) */
+  const attachBox = $("#f-attach"), attachTools = $("#attach-tools"), pad = $("#pad"), padCv = $("#pad-canvas");
+  const preview = $("#attach-preview"), previewImg = $("#attach-img"), photoIn = $("#f-photo");
+  let att = null; // { blob?, url, existingId? }
+  function setAttachment(a) {
+    if (att && att.blob && att.url) URL.revokeObjectURL(att.url);
+    att = a;
+    preview.hidden = !att;
+    attachTools.hidden = !!att;
+    pad.hidden = true;
+    if (att) previewImg.src = att.url; else previewImg.removeAttribute("src");
+  }
+  $("#attach-remove").addEventListener("click", () => { setAttachment(null); $("#f-draw-btn").focus(); });
+  $("#f-photo-btn").addEventListener("click", () => photoIn.click());
+  async function shrink(file) {
+    try {
+      const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+      const k = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+      const x = c.getContext("2d");
+      x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+      x.drawImage(bmp, 0, 0, c.width, c.height);
+      const out = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.86));
+      if (out) return out;
+    } catch (e) { /* fall through */ }
+    return /^image\/(png|jpeg|gif|webp)$/.test(file.type) ? file : null;
+  }
+  photoIn.addEventListener("change", async () => {
+    const file = photoIn.files && photoIn.files[0];
+    photoIn.value = "";
+    if (!file) return;
+    setStatus("Načítám fotku…", "info");
+    const blob = await shrink(file);
+    if (!blob) { setStatus("Tuhle fotku neumím načíst. Zkus obrázek ve formátu JPG nebo PNG."); return; }
+    setStatus("", "info");
+    setAttachment({ blob, url: URL.createObjectURL(blob) });
+  });
+
+  const pctx = padCv.getContext("2d");
+  const pen = { color: "#1d2f6f", size: 4 };
+  let stroke = null, padDpr = 1;
+  pad.querySelectorAll(".sw[data-color]").forEach((b) => b.style.setProperty("--c", b.dataset.color));
+  function clearPad() { pctx.fillStyle = "#ffffff"; pctx.fillRect(0, 0, padCv.width, padCv.height); }
+  function openPad() {
+    attachTools.hidden = true;
+    pad.hidden = false;
+    padDpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = padCv.clientWidth || 300;
+    padCv.width = Math.round(w * padDpr);
+    padCv.height = Math.round(w * 0.75 * padDpr);
+    clearPad();
+    padCv.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
+  }
+  function padPoint(e) {
+    const r = padCv.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * padCv.width / r.width, y: (e.clientY - r.top) * padCv.height / r.height };
+  }
+  padCv.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    try { padCv.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    stroke = padPoint(e);
+    pctx.fillStyle = pen.color;
+    pctx.beginPath(); pctx.arc(stroke.x, stroke.y, pen.size * padDpr / 2, 0, Math.PI * 2); pctx.fill();
+  });
+  padCv.addEventListener("pointermove", (e) => {
+    if (!stroke) return;
+    const co = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    const evs = co.length ? co : [e];
+    pctx.strokeStyle = pen.color; pctx.lineWidth = pen.size * padDpr; pctx.lineCap = "round"; pctx.lineJoin = "round";
+    pctx.beginPath(); pctx.moveTo(stroke.x, stroke.y);
+    for (const ev of evs) { const p = padPoint(ev); pctx.lineTo(p.x, p.y); stroke = p; }
+    pctx.stroke();
+  });
+  const endStroke = () => { stroke = null; };
+  padCv.addEventListener("pointerup", endStroke);
+  padCv.addEventListener("pointercancel", endStroke);
+  $("#pad-tools").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const sel = b.dataset.color ? "[data-color]" : b.dataset.size ? "[data-size]" : null;
+    if (!sel) return;
+    if (b.dataset.color) pen.color = b.dataset.color; else pen.size = +b.dataset.size;
+    pad.querySelectorAll(sel).forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  });
+  $("#f-draw-btn").addEventListener("click", openPad);
+  $("#pad-clear").addEventListener("click", clearPad);
+  $("#pad-cancel").addEventListener("click", () => { pad.hidden = true; attachTools.hidden = false; $("#f-draw-btn").focus(); });
+  $("#pad-done").addEventListener("click", () => {
+    padCv.toBlob((b) => { if (b) setAttachment({ blob: b, url: URL.createObjectURL(b) }); }, "image/png");
+  });
+
+  function openForm(l) {
+    state.editing = l || null;
+    $("#form-title").textContent = l ? "Úprava dopisu" : "Nový dopis";
+    saveBtn.textContent = l ? "Uložit dopis" : "Položit na parapet";
+    fFrom.value = l ? str(l.from, 40) : "";
+    fWish.value = l ? str(l.wish, 2000) : "";
+    setStatus("", "info");
+    attachBox.hidden = !state.assets;
+    setAttachment(l && validId(l.image) ? { url: "/_blob/" + l.image, existingId: l.image } : null);
+    delBtn.hidden = !l;
+    confirmBox.hidden = true;
+    saveBtn.disabled = false;
+    formDlg.showModal();
+    fWish.focus();
+  }
+  $("#f-cancel").addEventListener("click", () => formDlg.close());
+  writeBtn.addEventListener("click", () => {
+    if (!state.db) { permNote.hidden = false; permNote.textContent = "Psát dopisy jde jen po přihlášení na claude.ai."; return; }
+    openForm(null);
+  });
+
+  function failMessage(e) {
+    const code = e && e.code;
+    if (code === "invalid_argument" || code === "not_granted") {
+      state.canWrite = false; applyPermissions();
+      return "Tenhle účet může dopisy jen číst. Požádej toho, kdo stránku sdílí, o přístup pro úpravy.";
+    }
+    if (code === "quota_exceeded") return "Na parapetu už není místo. Některý starý dopis je potřeba smazat.";
+    if (code === "too_large") return "Obrázek je moc velký. Zkus menší.";
+    if (code === "unsupported_type") return "Tenhle typ obrázku neumím uložit. Zkus JPG nebo PNG.";
+    if (code === "quota_or_state") return "Na obrázky už tu není místo. Dopis ulož bez obrázku.";
+    if (code === "rate_limited") return "Moc pokusů za sebou. Zkus to za chvilku znovu.";
+    if (code === "no_assets") return "Obrázky z tohoto účtu nejde ukládat. Odeber obrázek a dopis ulož bez něj.";
+    return "Dopis se nepodařilo uložit. Zkontroluj připojení a zkus to znovu.";
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const from = fFrom.value.trim().slice(0, 40), wish = fWish.value.trim().slice(0, 2000);
+    if (!wish && !att) { setStatus("Napiš prosím aspoň jedno přání, nebo přidej obrázek."); fWish.focus(); return; }
+    if (!from) { setStatus("Podepiš se prosím, ať Ježíšek ví, od koho dopis je."); fFrom.focus(); return; }
+    const ed = state.editing;
+    let image = null, uploaded = null;
+    saveBtn.disabled = true;
+    try {
+      if (att && att.blob) {
+        if (!state.assets) throw { code: "no_assets" };
+        setStatus("Nahrávám obrázek…", "info");
+        uploaded = (await state.assets.upload(att.blob)).id;
+        image = uploaded;
+      } else if (att && att.existingId) {
+        image = att.existingId;
+      }
+      setStatus("Pokládám dopis na parapet…", "info");
+      const body = { from, wish };
+      if (image) body.image = image;
+      const col = state.db.collection("letters");
+      if (ed) {
+        await col.doc(ed.id).set({ ...body, author: ed.author || state.myId || null, createdAt: typeof ed.createdAt === "number" ? ed.createdAt : Date.now(), updatedAt: Date.now() });
+      } else {
+        await col.add({ ...body, author: state.myId || null, createdAt: Date.now() });
+      }
+      setStatus("", "info");
+      formDlg.close();
+    } catch (err) {
+      if (uploaded && state.assets) state.assets.delete(uploaded).catch(() => {});
+      setStatus(failMessage(err));
+      saveBtn.disabled = false;
+    }
+  });
+
+  delBtn.addEventListener("click", () => { confirmBox.hidden = false; $("#f-confirm-no").focus(); });
+  $("#f-confirm-no").addEventListener("click", () => { confirmBox.hidden = true; delBtn.focus(); });
+  $("#f-confirm-yes").addEventListener("click", async () => {
+    if (!state.editing) return;
+    const ed = state.editing;
+    const { id, ...rest } = ed;
+    const ghost = makeGhost(id);
+    try {
+      await state.db.collection("trash").doc(id).set({ ...rest, deletedAt: Date.now(), deletedBy: state.myId || null });
+      await state.db.collection("letters").doc(id).delete();
+      formDlg.close();
+      flyToBin(ghost);
+    } catch (err) { confirmBox.hidden = true; setStatus(failMessage(err)); }
+  });
+
+  /* ---------- Bin: deleted letters are kept in the "trash" collection ---------- */
+  const binBtn = $("#bin-btn"), binSvg = $("#bin-svg"), trashDlg = $("#trash-dlg"), trashList = $("#trash-list"), trashStatus = $("#trash-status");
+  state.trash = [];
+  function drawBin(full) {
+    binSvg.textContent = "";
+    const rect = (x, y, w, h, c) => {
+      const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      r.setAttribute("x", x); r.setAttribute("y", y); r.setAttribute("width", w); r.setAttribute("height", h); r.setAttribute("fill", c);
+      binSvg.append(r);
+    };
+    if (full) {
+      rect(3, 3, 4, 3, "#e6ebf3"); rect(4, 2, 2, 1, "#e6ebf3"); rect(6, 4, 1, 1, "#c7cdd8");
+      rect(8, 2, 4, 4, "#f4f7fc"); rect(9, 1, 2, 1, "#f4f7fc"); rect(11, 4, 1, 1, "#c7cdd8"); rect(7, 4, 2, 2, "#d3dbe9");
+    }
+    rect(1, 5, 14, 1, "#c08d5a");
+    rect(1, 6, 14, 1, "#8f5f36");
+    for (let y = 7; y < 15; y++) {
+      const inset = Math.floor((y - 7) / 3) + 1, x0 = 1 + inset, x1 = 15 - inset;
+      for (let x = x0; x < x1; x++) {
+        rect(x, y, 1, 1, x === x1 - 1 ? "#4a2c1d" : ((x >> 1) + (y >> 1)) % 2 ? "#9a6a3e" : "#7a4f30");
+      }
+    }
+    rect(4, 15, 8, 1, "#3a2418");
+  }
+  drawBin(false);
+  const fmtDate = (ms) => (typeof ms === "number" ? new Date(ms).toLocaleString("cs-CZ", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) : "");
+  function mkBtn(text, cls, fn) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = cls; b.textContent = text;
+    b.addEventListener("click", fn);
+    return b;
+  }
+  function renderTrash() {
+    const n = state.trash.length;
+    $("#bin-count").textContent = n ? "(" + n + ")" : "";
+    binBtn.setAttribute("aria-label", n ? "Koš, smazané dopisy: " + n : "Koš, je prázdný");
+    drawBin(n > 0);
+    trashList.textContent = "";
+    if (!n) {
+      const li = document.createElement("li"); li.className = "trash-empty"; li.textContent = "Koš je prázdný.";
+      trashList.append(li);
+      return;
+    }
+    for (const t of state.trash) {
+      const li = document.createElement("li"); li.className = "trash-item";
+      const name = document.createElement("p"); name.className = "trash-name"; name.textContent = str(t.from, 40) || "Bez podpisu";
+      const meta = document.createElement("p"); meta.className = "trash-meta";
+      const full = str(t.wish, 2000).replace(/\s+/g, " ");
+      const snippet = full ? full.slice(0, 90) + (full.length > 90 ? "…" : "") : (validId(t.image) ? "obrázek" : "");
+      meta.textContent = "Smazáno " + fmtDate(t.deletedAt) + (snippet ? " · " + snippet : "");
+      const acts = document.createElement("div"); acts.className = "trash-acts";
+      const back = mkBtn("Vrátit na parapet", "btn small", () => restore(t, back));
+      acts.append(mkBtn("Přečíst", "btn quiet small", () => showLetter(t, true)), back);
+      li.append(name, meta, acts);
+      if (state.isOwner) {
+        const conf = document.createElement("div"); conf.className = "confirm"; conf.hidden = true;
+        const q = document.createElement("p"); q.textContent = "Smazat dopis natrvalo? Už nepůjde vrátit.";
+        const no = mkBtn("Ponechat", "btn quiet small", () => { conf.hidden = true; acts.hidden = false; });
+        conf.append(q, mkBtn("Ano, natrvalo", "btn danger-solid small", () => purge(t)), no);
+        acts.append(mkBtn("Smazat natrvalo", "btn danger small", () => { acts.hidden = true; conf.hidden = false; no.focus(); }));
+        li.append(conf);
+      }
+      trashList.append(li);
+    }
+  }
+  async function restore(t, btn) {
+    btn.disabled = true;
+    trashStatus.textContent = "";
+    const { id, deletedAt, deletedBy, ...rest } = t;
+    try {
+      await state.db.collection("letters").doc(id).set(rest);
+      await state.db.collection("trash").doc(id).delete();
+    } catch (err) { trashStatus.textContent = failMessage(err); btn.disabled = false; }
+  }
+  async function purge(t) {
+    trashStatus.textContent = "";
+    try {
+      await state.db.collection("trash").doc(t.id).delete();
+      if (validId(t.image) && state.assets) state.assets.delete(t.image).catch(() => {});
+    } catch (err) { trashStatus.textContent = failMessage(err); }
+  }
+  binBtn.addEventListener("click", () => { trashStatus.textContent = ""; renderTrash(); trashDlg.showModal(); $("#trash-close").focus(); });
+  $("#trash-close").addEventListener("click", () => trashDlg.close());
+  trashDlg.addEventListener("click", (e) => { if (e.target === trashDlg) trashDlg.close(); });
+
+  function makeGhost(id) {
+    const src = lettersEl.querySelector('[data-id="' + CSS.escape(id) + '"]');
+    if (!src) return null;
+    const el = src.cloneNode(true);
+    el.classList.remove("drop");
+    el.removeAttribute("aria-label");
+    el.setAttribute("aria-hidden", "true");
+    el.tabIndex = -1;
+    const sCv = src.querySelector("canvas"), cCv = el.querySelector("canvas");
+    if (sCv && cCv) { cCv.width = sCv.width; cCv.height = sCv.height; cCv.getContext("2d").drawImage(sCv, 0, 0); }
+    return { el, rect: src.getBoundingClientRect() };
+  }
+  function flyToBin(g) {
+    const wobble = () => { binBtn.classList.remove("wobble"); void binBtn.offsetWidth; binBtn.classList.add("wobble"); };
+    if (!g || reduceMotion || binBtn.hidden || !g.el.animate) { wobble(); return; }
+    const r = g.rect, b = binSvg.getBoundingClientRect();
+    const dx = b.left + b.width / 2 - (r.left + r.width / 2);
+    const dy = b.top + b.height * 0.3 - (r.top + r.height / 2);
+    Object.assign(g.el.style, { position: "fixed", left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", margin: "0", zIndex: "50", pointerEvents: "none", transition: "none", overflow: "hidden" });
+    document.body.append(g.el);
+    const a = g.el.animate([
+      { transform: "translate(0, 0) rotate(0deg) scale(1)", borderRadius: "0%" },
+      { transform: `translate(${dx * 0.3}px, ${dy * 0.3 - 90}px) rotate(-35deg) scale(.45)`, borderRadius: "45%", offset: 0.4 },
+      { transform: `translate(${dx}px, ${dy}px) rotate(230deg) scale(.12)`, borderRadius: "50%", opacity: 0.85 },
+    ], { duration: 950, easing: "cubic-bezier(.4, 0, .7, 1)", fill: "forwards" });
+    a.onfinish = () => { g.el.remove(); wobble(); };
+  }
+
+  function applyPermissions() {
+    if (!state.db) {
+      writeBtn.hidden = true;
+      return;
+    }
+    if (state.canWrite === false) {
+      writeBtn.hidden = true;
+      permNote.hidden = false;
+      permNote.textContent = "Dopisy si můžeš přečíst. Psát je můžou ti z rodiny, kdo dostali pozvánku s možností úprav.";
+    } else {
+      writeBtn.hidden = false;
+    }
+    binBtn.hidden = writeBtn.hidden;
+  }
+
+  async function connect() {
+    const api = window.claude && typeof window.claude.use === "function" ? window.claude : null;
+    if (!api) { state.failed = true; writeBtn.hidden = true; renderSill(); return; }
+    const [db, user, assets] = await Promise.all([api.use("db").catch(() => null), api.use("user").catch(() => null), api.use("assets").catch(() => null)]);
+    if (!db) { state.failed = true; writeBtn.hidden = true; renderSill(); return; }
+    state.db = db;
+    state.assets = assets;
+    if (user) {
+      const [id, own, can] = await Promise.all([user.id(), user.isOwner(), user.can("data.write")]);
+      state.myId = id; state.isOwner = own; state.canWrite = can;
+    }
+    applyPermissions();
+    renderSill();
+    let first = true;
+    const timer = setTimeout(() => { if (!state.loaded) { noteEl.hidden = false; noteEl.textContent = state.letters.length ? "Dopisy možná nejsou aktuální, spojení se zatím nenavázalo." : "Dopisy se zatím nedaří načíst. Zkontroluj připojení."; } }, 10000);
+    db.collection("letters").orderBy("createdAt").onSnapshot((snap) => {
+      if (!first) snap.docChanges().forEach((ch) => { if (ch.type === "added") state.fresh.add(ch.doc.id); });
+      first = false;
+      state.letters = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      if (!snap.metadata.fromCache) { state.loaded = true; clearTimeout(timer); }
+      renderSill();
+      if (openId && letterDlg.open && !state.letters.some((l) => l.id === openId)) letterDlg.close();
+    }, () => { clearTimeout(timer); state.failed = true; renderSill(); });
+    db.collection("trash").orderBy("deletedAt", "desc").onSnapshot((snap) => {
+      state.trash = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderTrash();
+    }, () => {});
+  }
+
+  renderSill();
+  connect();
+})();
+</script>
