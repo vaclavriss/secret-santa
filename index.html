@@ -1658,10 +1658,89 @@ form { display: flex; flex-direction: column; gap: 1rem; }
     binBtn.hidden = writeBtn.hidden;
   }
 
+  /* ---------- Self-hosted backend (server/server.mjs) ----------
+     Outside claude.ai the page talks to its own server over /api and offers the same small
+     db / assets / user interface as the claude.ai runtime, so the code above works unchanged.
+     No login: "my" letters are the ones written from this browser; ?admin=<key> once makes it the admin's. */
+  const local = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } },
+  };
+  async function selfHosted() {
+    const url = new URL(location.href);
+    if (url.searchParams.has("admin")) {
+      local.set("santa-admin", url.searchParams.get("admin"));
+      url.searchParams.delete("admin");
+      history.replaceState(null, "", url);
+    }
+    const adminKey = local.get("santa-admin") || "";
+    let myId = local.get("santa-me");
+    if (!validId(myId)) {
+      myId = Array.from(crypto.getRandomValues(new Uint8Array(12)), (x) => x.toString(16).padStart(2, "0")).join("");
+      local.set("santa-me", myId);
+    }
+    async function call(method, path, body) {
+      const headers = {};
+      if (adminKey) headers["X-Admin-Key"] = adminKey;
+      let payload;
+      if (body instanceof Blob) { payload = body; headers["Content-Type"] = body.type || "application/octet-stream"; }
+      else if (body !== undefined) { payload = JSON.stringify(body); headers["Content-Type"] = "application/json"; }
+      let r;
+      try { r = await fetch(path, { method, headers, body: payload, cache: "no-store" }); } catch (e) { throw { code: "network" }; }
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw { code: j.code || "http_" + r.status };
+      return j;
+    }
+    let me;
+    try { me = await call("GET", "/api/me"); } catch (e) { return null; }
+    if (typeof me.admin !== "boolean") return null;
+
+    const listeners = { letters: new Set(), trash: new Set() }, last = {};
+    let es = null;
+    function openStream() {
+      if (es) return;
+      es = new EventSource("/api/stream");
+      es.addEventListener("snapshot", (ev) => {
+        let m;
+        try { m = JSON.parse(ev.data); } catch (e) { return; }
+        if (!listeners[m.col] || !Array.isArray(m.docs)) return;
+        last[m.col] = m.docs;
+        listeners[m.col].forEach((fn) => fn(m.docs));
+      });
+    }
+    const docPath = (col, id) => "/api/" + col + "/" + encodeURIComponent(id);
+    const collection = (col) => ({
+      orderBy: (field, dir) => ({
+        onSnapshot(cb) {
+          let seen = null;
+          const fn = (docs) => {
+            const val = (d) => (typeof d.data[field] === "number" ? d.data[field] : 0);
+            const sorted = docs.slice().sort((p, r) => (dir === "desc" ? val(r) - val(p) : val(p) - val(r)) || (p.id < r.id ? -1 : 1));
+            const changes = sorted.filter((d) => !seen || !seen.has(d.id)).map((d) => ({ type: "added", doc: { id: d.id } }));
+            seen = new Set(sorted.map((d) => d.id));
+            cb({ docs: sorted.map((d) => ({ id: d.id, data: () => d.data })), docChanges: () => changes, metadata: { fromCache: false } });
+          };
+          listeners[col].add(fn);
+          openStream();
+          if (last[col]) fn(last[col]);
+          return () => listeners[col].delete(fn);
+        },
+      }),
+      add: (data) => call("POST", "/api/" + col, data),
+      doc: (id) => ({ set: (data) => call("PUT", docPath(col, id), data), delete: () => call("DELETE", docPath(col, id)) }),
+    });
+    return {
+      db: { collection },
+      assets: { upload: (blob) => call("POST", "/api/images", blob), delete: (id) => call("DELETE", "/api/images/" + encodeURIComponent(id)) },
+      user: { id: async () => myId, isOwner: async () => me.admin, can: async () => true },
+    };
+  }
+
   async function connect() {
     const api = window.claude && typeof window.claude.use === "function" ? window.claude : null;
-    if (!api) { state.failed = true; writeBtn.hidden = true; renderSill(); return; }
-    const [db, user, assets] = await Promise.all([api.use("db").catch(() => null), api.use("user").catch(() => null), api.use("assets").catch(() => null)]);
+    let db = null, user = null, assets = null;
+    if (api) [db, user, assets] = await Promise.all([api.use("db").catch(() => null), api.use("user").catch(() => null), api.use("assets").catch(() => null)]);
+    else ({ db, user, assets } = (await selfHosted()) || {});
     if (!db) { state.failed = true; writeBtn.hidden = true; renderSill(); return; }
     state.db = db;
     state.assets = assets;

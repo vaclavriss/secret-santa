@@ -1,0 +1,15 @@
+services:
+  santa:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Key for deleting letters from the bin for good: open the page once with ?admin=<key>.
+      ADMIN_KEY: ${ADMIN_KEY:-}
+      # Set to "1" when running behind a reverse proxy (Caddy, nginx) so rate limits see real IPs.
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+    volumes:
+      - santa-data:/data
+volumes:
+  santa-data:
